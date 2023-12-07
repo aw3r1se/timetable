@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('time_segments', function (Blueprint $table) {
             $table->id();
+
+            if (config('timetable.segment.relation_name')) {
+                $table->morphs('scheduleable');
+            }
+
             $table->date('date')->index();
             $table->time('start_time');
             $table->time('end_time');

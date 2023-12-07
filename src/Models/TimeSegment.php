@@ -2,9 +2,12 @@
 
 namespace Aw3r1se\Timetable\Models;
 
+use Aw3r1se\Timetable\Exceptions\RelationIsNotConfigured;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Aw3r1se\Timetable\Helpers;
 
 /**
  * @TimeSegment
@@ -16,6 +19,8 @@ use Illuminate\Support\Carbon;
  * @property-read Carbon|null $start
  * @property-read Carbon|null $end
  * @property-read Carbon|null $duration
+ *
+ * @property-read Model $scheduleable
  */
 class TimeSegment extends Model
 {
@@ -30,6 +35,16 @@ class TimeSegment extends Model
         'time_from' => 'time',
         'time_to' => 'time',
     ];
+
+    /**
+     * @throws RelationIsNotConfigured
+     */
+    public function scheduleable(): MorphTo
+    {
+        Helpers\Schedule::checkRelationIsValid();
+
+        return $this->morphTo(config('timetable.segment.relation_name'));
+    }
 
     public function start(): Attribute
     {

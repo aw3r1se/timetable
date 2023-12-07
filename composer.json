@@ -1,0 +1,17 @@
+{
+    "name": "aw3r1se/timetable",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Aw3r1se\\Timetable\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aw3r1se\\Timetable\\TimetableServiceProvider"
+            ]
+        }
+    }
+}
