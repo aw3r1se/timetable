@@ -11,11 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('time_segments', function (Blueprint $table) {
+        if (Schema::hasTable(config('timetable.segments.table_name'))) {
+            return;
+        }
+
+        Schema::create(config('timetable.segments.table_name'), function (Blueprint $table) {
             $table->id();
 
-            if (config('timetable.segment.relation_name')) {
-                $table->morphs('scheduleable');
+            $relation_name = config('timetable.segment.relation_name');
+            if ($relation_name) {
+                $table->nullableMorphs($relation_name);
             }
 
             $table->date('date')->index();
@@ -24,11 +29,20 @@ return new class extends Migration
             $table->timestamps();
 
             if (config('timetable.segment.unique_index')) {
-                $table->unique([
+                $fields = [
                     'date',
                     'start_time',
                     'end_time',
-                ]);
+                ];
+
+                if ($relation_name) {
+                    $fields += [
+                        $relation_name . '_type',
+                        $relation_name . '_id',
+                    ];
+                }
+
+                $table->unique($fields);
             }
         });
     }
