@@ -4,35 +4,37 @@ namespace Aw3r1se\Timetable;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use SplFileInfo;
 
 class TimetableServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function register(): void
     {
         $config_path = __DIR__ . '/../config/timetable.php';
-        $migrations_path = __DIR__ . '/../database/migrations/';
+        $migrations_path = __DIR__ . '/../database/migrations/stubs';
 
-        $migration = 'create_time_segments_table';
+        /** @var array<\Symfony\Component\Finder\SplFileInfo $migrations */
+        $migrations = File::files($migrations_path);
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 $config_path => config_path('timetable.php'),
             ], 'config');
 
-            $this->publishes([
-                $migrations_path . "stubs/$migration.stub"
-                => database_path('migrations') . '/' . now()->format('Y_m_d_u') . "_$migration.php",
-            ], 'migrations');
+            foreach ($migrations as $file) {
+                $timestamp = now()->format('Y_m_d_u');
+                $filename = preg_replace('#\.stub$#i', '', $file->getFileName());
+
+                $this->publishes([
+                    "$migrations_path/$filename.stub"
+                    => database_path('migrations') . "/{$timestamp}_$filename.php",
+
+                ], 'migrations');
+            }
         }
 
         $this->mergeConfigFrom($config_path, 'timetable');
-
-        /** @var array<SplFileInfo> $migrations */
-        $migrations = File::allFiles(database_path('migrations'));
-        if (!Arr::first($migrations, fn(SplFileInfo $file) => Str::contains($file->getFilename(), $migration))) {
-            $this->loadMigrationsFrom($migrations_path);
-        }
     }
 }

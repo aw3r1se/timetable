@@ -11,20 +11,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('timetable.segments.table_name'), function (Blueprint $table) {
+        Schema::create(config('timetable.segment.table_name'), function (Blueprint $table) {
             $table->id();
 
-            $relation_name = config('timetable.segment.relation_name');
-            if ($relation_name) {
+            if ($relation_name = config('timetable.segment.relation_name')) {
                 $table->nullableMorphs($relation_name);
             }
+
+            $table->foreignId('schedule_id')
+                ->nullable()
+                ->constrained(config('timetable.schedule.table_name'))
+                ->cascadeOnUpdate()
+                ->nullOnDelete();
 
             $table->date('date')->index();
             $table->time('start_time');
             $table->time('end_time');
             $table->timestamps();
 
-            if (config('timetable.segment.unique_index')) {
+            if (config('timetable.segment.soft_delete')) {
+                $table->softDeletes();
+            }
+
+            if (config('timetable.segment.datetime_unique_index')) {
                 $fields = [
                     'date',
                     'start_time',
@@ -48,6 +57,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('time_segments');
+        Schema::dropIfExists(config('timetable.segment.table_name'));
     }
 };
