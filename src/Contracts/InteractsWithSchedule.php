@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 interface InteractsWithSchedule
 {
-    public const RELATION = 'schedulable';
+    public const RELATION = 'owner';
 
-    public function schedule(): MorphMany;
+    public function schedules(): MorphMany;
 }

@@ -35,11 +35,9 @@ trait HasTimeRecords
         );
     }
 
-    public function schedule(): Services\Schedule
+    public function record(): Services\Record
     {
-        /** @var InteractsWithTimeRecords $this */
-
-        return app(Services\Schedule::class)
+        return app(Services\Record::class)
             ->setRecordable($this);
     }
 }

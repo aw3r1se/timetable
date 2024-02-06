@@ -35,11 +35,11 @@ trait HasSchedules
         );
     }
 
-    public function schedule(): Services\Schedule
-    {
-        /** @var InteractsWithSchedule $this */
-
-        return app(Services\Schedule::class)
-            ->setSchedulable($this);
-    }
+//    public function schedule(): Services\Record
+//    {
+//        /** @var InteractsWithSchedule $this */
+//
+//        return app(Services\Record::class)
+//            ->setSchedulable($this);
+//    }
 }

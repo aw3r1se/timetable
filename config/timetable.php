@@ -31,9 +31,9 @@ return [
 
         'soft_delete' => true,
         'start_end_index' => true,
-        'default_min_interval' => [
-            'value' => 30,
+        'default_interval' => [
             'unit' => 'minute',
+            'value' => 30,
         ],
     ],
 ];

@@ -58,17 +58,6 @@ class Schedule
     }
 
     /**
-     * @throws RelationIsNotConfigured
-     */
-    public function isRecordRelationValid(string $entity): void
-    {
-        static::isRelationValid(
-            $entity,
-            'timetable.record.relation',
-        );
-    }
-
-    /**
      * @param string|null $name
      * @return void
      * @throws ModelNotDefined
