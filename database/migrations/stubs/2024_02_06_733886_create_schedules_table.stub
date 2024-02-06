@@ -14,13 +14,17 @@ return new class extends Migration
         Schema::create(config('timetable.schedule.table_name'), function (Blueprint $table) {
             $table->id();
 
-            if ($relation_name = config('timetable.segment.relation_name')) {
+            if ($relation_name = config('timetable.schedule.relation.name')) {
                 $table->nullableMorphs($relation_name);
             }
 
             $table->date('from');
-            $table->date('to');
-            $table->unsignedTinyInteger('week_interval');
+            $table->date('to')
+                ->nullable();
+
+            $table->unsignedTinyInteger('week_interval')
+                ->default(1);
+
             $table->timestamps();
 
             if (config('timetable.schedule.soft_delete')) {

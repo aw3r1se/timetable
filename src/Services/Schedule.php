@@ -2,127 +2,52 @@
 
 namespace Aw3r1se\Timetable\Services;
 
-use Aw3r1se\Timetable\Enums\Month;
-use Aw3r1se\Timetable\Exceptions\ModelNotFound;
-use Aw3r1se\Timetable\Models\TimeSegment;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Aw3r1se\Timetable\Contracts\InteractsWithSchedule;
+use Aw3r1se\Timetable\Contracts\InteractsWithTimeRecords;
+use Aw3r1se\Timetable\Models\TimeRecord;
 use Illuminate\Support\Carbon;
-use Aw3r1se\Timetable\Helpers;
 
 class Schedule
 {
-    protected ?Carbon $from = null;
+    protected ?InteractsWithSchedule $schedulable = null;
 
-    protected ?Carbon $to = null;
+    protected InteractsWithTimeRecords $recordable;
 
-    /**
-     * @var string<TimeSegment>
-     */
-    protected string $segment;
-
-    /**
-     * @throws ModelNotFound
-     */
-    public function __construct()
+    public function setSchedulable(InteractsWithSchedule $schedulable): static
     {
-        Helpers\Schedule::checkModelIsValid();
-
-        $this->segment = config('timetable.segment.model');
-    }
-
-
-    protected function setFrom(Carbon|string $from): static
-    {
-        $this->from = $from instanceof Carbon
-            ? $from
-            : $this->stringToCarbon($from);
+        $this->schedulable = $schedulable;
 
         return $this;
     }
 
-    protected function setTo(Carbon|string $to): static
+    public function setRecordable(InteractsWithTimeRecords $recordable): static
     {
-        $this->to = $to instanceof Carbon
-            ? $to
-            : $this->stringToCarbon($to);
+        $this->recordable = $recordable;
 
         return $this;
     }
 
-    /**
-     * @param Carbon|string|null $from
-     * @param Carbon|string|null $to
-     * @param callable|null $additional
-     * @return Collection<TimeSegment>
-     */
-    public function getPeriod(
-        Carbon|string|null  $from = null,
-        Carbon|string|null  $to = null,
-        ?callable           $additional = null
-    ): Collection {
-        if ($from) {
-            $this->setFrom($from);
+    public function hold(Carbon $start, Carbon $end): void
+    {
+        $time_record = new TimeRecord([
+            'start' => $start,
+            'end' => $end,
+        ]);
+
+        if ($this->schedulable) {
+            $time_record->schedule()
+                ->associate($this->schedulable)
+                ->save();
         }
 
-        if ($to) {
-            $this->setTo($to);
-        }
-
-        /** @var Builder<TimeSegment> $query */
-        $query = $this->segment::query()
-            ->whereBetween('start_time', [$this->from, $this->to]);
-
-        if ($additional) {
-            $additional($query);
-        }
-
-        return $query->get();
+        $time_record->recordable()
+            ->associate($this->recordable)
+            ->save();
     }
 
-    /**
-     * @param Month|null $month
-     * @return Collection<TimeSegment>
-     */
-    public function byMonth(?Month $month = null): Collection
+    public function report(): Report
     {
-        $now = Carbon::now();
-
-        if (empty($month)) {
-            $month = Month::from($now->month);
-        }
-
-        $from = (clone $now)
-            ->month($month->value)
-            ->firstOfMonth()
-            ->startOfDay();
-
-        $to = (clone $now)
-            ->month($month->value)
-            ->lastOfMonth()
-            ->endOfDay();
-
-        return $this->getPeriod($from, $to);
-    }
-
-    public function byDay(Carbon|string|null $day = null): Collection
-    {
-        $now = Carbon::now();
-        if (empty($day)) {
-            $day = $now;
-        }
-
-        $from = (clone $day)
-            ->startOfDay();
-
-        $to = (clone $day)
-            ->endOfDay();
-
-        return $this->getPeriod($from, $to);
-    }
-
-    protected function stringToCarbon(string $date): Carbon
-    {
-        return Carbon::parse($date);
+        return app(Report::class)
+            ->setRecordable($this->recordable);
     }
 }

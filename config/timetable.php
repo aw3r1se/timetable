@@ -1,23 +1,36 @@
 <?php
 
+use Aw3r1se\Timetable;
+
 return [
     'schedule' => [
-        'model' => Aw3r1se\Timetable\Models\Schedule::class,
+        'model' => Timetable\Models\Schedule::class,
         'table_name' => 'schedules',
-        'relation_name' => 'holdable',
+
+        'relation' => [
+            'name' => Timetable\Contracts\InteractsWithSchedule::RELATION,
+            'contract' => Timetable\Contracts\InteractsWithSchedule::class,
+        ],
+
         'soft_delete' => true,
+
         'day' => [
-            'model' => Aw3r1se\Timetable\Models\ScheduleDay::class,
+            'model' => Timetable\Models\ScheduleDay::class,
             'table_name' => 'schedule_days',
             'soft_delete' => true,
         ],
     ],
-    'segment' => [
-        'model' => Aw3r1se\Timetable\Models\TimeSegment::class,
-        'table_name' => 'time_segments',
-        'relation_name' => 'holdable',
+    'record' => [
+        'model' => Timetable\Models\TimeRecord::class,
+        'table_name' => 'time_records',
+
+        'relation' => [
+            'name' => Timetable\Contracts\InteractsWithTimeRecords::RELATION,
+            'contract' => Timetable\Contracts\InteractsWithTimeRecords::class,
+        ],
+
         'soft_delete' => true,
-        'datetime_unique_index' => true,
+        'start_end_index' => true,
         'default_min_interval' => [
             'value' => 30,
             'unit' => 'minute',

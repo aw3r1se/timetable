@@ -1,0 +1,46 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create(config('timetable.record.table_name'), function (Blueprint $table) {
+            $table->id();
+
+            if ($relation_name = config('timetable.record.relation.name')) {
+                $table->nullableMorphs($relation_name);
+            }
+
+            $table->datetime('start');
+            $table->datetime('end');
+
+            if (config('timetable.record.start_end_index')) {
+                $table->index([
+                    'start',
+                    'end',
+                ]);
+            }
+
+            $table->timestamps();
+
+            if (config('timetable.record.soft_delete')) {
+                $table->softDeletes();
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists(config('timetable.record.table_name'));
+    }
+};

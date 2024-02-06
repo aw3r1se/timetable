@@ -2,12 +2,11 @@
 
 namespace Aw3r1se\Timetable;
 
-use Illuminate\Support\Arr;
+use Aw3r1se\Timetable\Exceptions\ModelNotDefined;
+use Aw3r1se\Timetable\Exceptions\ModelNotFound;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
-use SplFileInfo;
+use Symfony\Component\Finder\SplFileInfo;
 
 class TimetableServiceProvider extends ServiceProvider
 {
@@ -16,7 +15,7 @@ class TimetableServiceProvider extends ServiceProvider
         $config_path = __DIR__ . '/../config/timetable.php';
         $migrations_path = __DIR__ . '/../database/migrations/stubs';
 
-        /** @var array<\Symfony\Component\Finder\SplFileInfo $migrations */
+        /** @var array<SplFileInfo> $migrations */
         $migrations = File::files($migrations_path);
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -24,17 +23,27 @@ class TimetableServiceProvider extends ServiceProvider
             ], 'config');
 
             foreach ($migrations as $file) {
-                $timestamp = now()->format('Y_m_d_u');
                 $filename = preg_replace('#\.stub$#i', '', $file->getFileName());
 
                 $this->publishes([
                     "$migrations_path/$filename.stub"
-                    => database_path('migrations') . "/{$timestamp}_$filename.php",
+                    => database_path('migrations') . "/$filename.php",
 
                 ], 'migrations');
             }
         }
 
         $this->mergeConfigFrom($config_path, 'timetable');
+    }
+
+    /**
+     * @throws ModelNotDefined
+     * @throws ModelNotFound
+     */
+    public function boot(): void
+    {
+        Helpers\Schedule::isTimeRecordModelValid();
+        Helpers\Schedule::isScheduleModelValid();
+        Helpers\Schedule::isScheduleDayModelValid();
     }
 }
